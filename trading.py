@@ -1,14 +1,19 @@
 import MetaTrader5 as mt5
+import asyncio
 
-# Verbindung mit MetaTrader 5 herstellen
-if not mt5.initialize():
-    print("initialize() failed")
-    mt5.shutdown()
+async def initializeMt5():
+    # Verbindung mit MetaTrader 5 herstellen
+    if not mt5.initialize():
+        print("initialize() failed")
+        mt5.shutdown()
+    print("initialize() successful")
+    await asyncio.sleep(1)
+
 
 async def buy_now(tp_price, sl_price):
     tick_info = mt5.symbol_info_tick('XAUUSD')
     if tick_info is None:
-        print(f"Keine Informationen für Symbol XAUUSD gefunden")
+        print(f"No info found for symbol 'XAUUSD'")
         return
     price = tick_info.ask
 
@@ -101,7 +106,7 @@ async def move_sl_to_be(new_sl_price):
         result = mt5.order_send(request)
         print(result)
     else:
-        print("Keine offenen Trades gefunden.")
+        print("No open trades found.")
 
 async def delete_buy_stops():
     print("Command: DELETE BUY STOPS")
@@ -116,7 +121,7 @@ async def delete_buy_stops():
                 result = mt5.order_send(request)
                 print(result)
     else:
-        print("Keine BUY STOP Aufträge gefunden.")
+        print("No BUY STOP orders found.")
 
 async def close_trade(close_data):
     print(f"Command: CLOSE, Data: {close_data}")
@@ -135,7 +140,7 @@ async def close_trade(close_data):
                 result = mt5.order_send(request)
                 print(result)
     else:
-        print("Keine passenden Trades gefunden.")
+        print("No open trades found.")
 
 # Nicht vergessen, die Verbindung am Ende zu schließen
-# mt5.shutdown()
+mt5.shutdown()

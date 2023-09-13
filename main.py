@@ -3,7 +3,7 @@ import discord
 from dotenv import load_dotenv
 import os
 from trading import (buy_now, sell_limit, sell_stop, buy_stop, 
-                     move_sl_to_be, delete_buy_stops, close_trade)
+                     move_sl_to_be, delete_buy_stops, close_trade, initializeMt5)
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -14,7 +14,8 @@ bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 @bot.event
 async def on_ready():
-    print(f'Angemeldet als {bot.user}')
+    print(f'Signed in as {bot.user}')
+    await initializeMt5()
 
 @bot.event
 async def on_message(message):
