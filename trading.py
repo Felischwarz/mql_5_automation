@@ -5,14 +5,20 @@ if not mt5.initialize():
     print("initialize() failed")
     mt5.shutdown()
 
-async def buy_now(item, tp_price, sl_price):
-    print(f"Command: BUY NOW, Item: {item}, TP: {tp_price}, SL: {sl_price}")
+async def buy_now(tp_price, sl_price):
+    tick_info = mt5.symbol_info_tick('XAUUSD')
+    if tick_info is None:
+        print(f"Keine Informationen für Symbol XAUUSD gefunden")
+        return
+    price = tick_info.ask
+
+    print(f"Command: BUY NOW, Symbol: XAUUSD, TP: {tp_price}, SL: {sl_price}")
     request = {
         "action": mt5.TRADE_ACTION_DEAL,
-        "symbol": item,
+        "symbol": 'XAUUSD',
         "volume": 1.0,
         "type": mt5.ORDER_TYPE_BUY,
-        "price": mt5.symbol_info_tick(item).ask,
+        "price": price,
         "sl": sl_price,
         "tp": tp_price,
         "magic": 234000,
@@ -23,11 +29,11 @@ async def buy_now(item, tp_price, sl_price):
     result = mt5.order_send(request)
     print(result)
 
-async def sell_limit(item, limit_price, tp_price, sl_price):
-    print(f"Command: {item} SELL LIMIT, Price: {limit_price}, TP: {tp_price}, SL: {sl_price}")
+async def sell_limit(limit_price, tp_price, sl_price):
+    print(f"Command: SELL LIMIT, Symbol: XAUUSD, Price: {limit_price}, TP: {tp_price}, SL: {sl_price}")
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
-        "symbol": item,
+        "symbol": 'XAUUSD',
         "volume": 1.0,
         "type": mt5.ORDER_TYPE_SELL_LIMIT,
         "price": limit_price,
@@ -41,11 +47,11 @@ async def sell_limit(item, limit_price, tp_price, sl_price):
     result = mt5.order_send(request)
     print(result)
 
-async def sell_stop(item, stop_price, tp_price, sl_price):
-    print(f"Command: {item} SELL STOP, Price: {stop_price}, TP: {tp_price}, SL: {sl_price}")
+async def sell_stop(stop_price, tp_price, sl_price):
+    print(f"Command: SELL STOP, Symbol: XAUUSD, Price: {stop_price}, TP: {tp_price}, SL: {sl_price}")
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
-        "symbol": item,
+        "symbol": 'XAUUSD',
         "volume": 1.0,
         "type": mt5.ORDER_TYPE_SELL_STOP,
         "price": stop_price,
@@ -59,11 +65,11 @@ async def sell_stop(item, stop_price, tp_price, sl_price):
     result = mt5.order_send(request)
     print(result)
 
-async def buy_stop(item, stop_price, tp_price, sl_price):
-    print(f"Command: {item} BUY STOP, Price: {stop_price}, TP: {tp_price}, SL: {sl_price}")
+async def buy_stop(stop_price, tp_price, sl_price):
+    print(f"Command: BUY STOP, Symbol: XAUUSD, Price: {stop_price}, TP: {tp_price}, SL: {sl_price}")
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
-        "symbol": item,
+        "symbol": 'XAUUSD',
         "volume": 1.0,
         "type": mt5.ORDER_TYPE_BUY_STOP,
         "price": stop_price,
@@ -110,35 +116,26 @@ async def delete_buy_stops():
                 result = mt5.order_send(request)
                 print(result)
     else:
-        print("Keine offenen Trades gefunden.")
+        print("Keine BUY STOP Aufträge gefunden.")
 
 async def close_trade(close_data):
-    print(f"Command: CLOSE TRADE, Close Data: {close_data}")
+    print(f"Command: CLOSE, Data: {close_data}")
     trades = mt5.positions_get()
     if trades:
-        trade = trades[-1]  # Der letzte offene Trade
-        ticket = trade.ticket
-
-        volume = trade.volume
-        if close_data.lower() != "full":
-            volume = volume * (float(close_data.strip('%')) / 100)
-
-        request = {
-            "action": mt5.TRADE_ACTION_DEAL,
-            "position": ticket,
-            "volume": volume,
-            "type": mt5.ORDER_TYPE_SELL,
-            "price": mt5.symbol_info_tick(trade.symbol).bid,
-            "magic": 234000,
-            "comment": "close trade",
-            "type_time": mt5.ORDER_TIME_GTC,
-            "type_filling": mt5.ORDER_FILLING_IOC,
-        }
-        result = mt5.order_send(request)
-        print(result)
+        for trade in trades:
+            if str(trade.ticket) in close_data:
+                request = {
+                    "action": mt5.TRADE_ACTION_DEAL,
+                    "position": trade.ticket,
+                    "volume": trade.volume,
+                    "magic": 234000,
+                    "comment": "close trade",
+                    "type": mt5.ORDER_TYPE_SELL if trade.type == mt5.ORDER_TYPE_BUY else mt5.ORDER_TYPE_BUY,
+                }
+                result = mt5.order_send(request)
+                print(result)
     else:
-        print("Keine offenen Trades gefunden.")
+        print("Keine passenden Trades gefunden.")
 
-# Schließe die Verbindung zu MetaTrader 5, wenn das Script beendet wird
-import atexit
-atexit.register(mt5.shutdown)
+# Nicht vergessen, die Verbindung am Ende zu schließen
+# mt5.shutdown()
