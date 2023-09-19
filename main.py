@@ -2,7 +2,7 @@ from discord.ext import commands
 import discord
 from dotenv import load_dotenv
 import os
-from trading import (buy_now, sell_limit, sell_stop, buy_stop, 
+from trading import (buy_now, sell_now, sell_limit, sell_stop, buy_stop, 
                      move_sl_to_be, delete_buy_stops, close_trade, initializeMt5)
 
 load_dotenv()
@@ -28,6 +28,11 @@ async def on_message(message):
                 sl_price = float(sl.split('-')[1].strip())
                 await buy_now(tp_price, sl_price)
             
+            if command.startswith('SELL GOLD NOW'):
+                tp_price = float(tp.split('-')[1].strip())
+                sl_price = float(sl.split('-')[1].strip())
+                await sell_now(tp_price, sl_price)
+                
             elif ' SELL LIMITS @' in command:
                 _, price = command.split(' SELL LIMITS @')
                 tp_price = float(tp.split('-')[1].strip())

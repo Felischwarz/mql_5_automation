@@ -34,6 +34,32 @@ async def buy_now(tp_price, sl_price):
     result = mt5.order_send(request)
     print(result)
 
+
+async def sell_now(tp_price, sl_price):
+    tick_info = mt5.symbol_info_tick('XAUUSD')
+    if tick_info is None:
+        print(f"No info found for symbol 'XAUUSD'")
+        return
+    price = tick_info.bid  # Verwenden Sie bid für Verkaufsaufträge
+
+    print(f"Command: SELL NOW, Symbol: XAUUSD, TP: {tp_price}, SL: {sl_price}")
+    request = {
+        "action": mt5.TRADE_ACTION_DEAL,
+        "symbol": 'XAUUSD',
+        "volume": 1.0,
+        "type": mt5.ORDER_TYPE_SELL,
+        "price": price,
+        "sl": sl_price,
+        "tp": tp_price,
+        "magic": 234000,
+        "comment": "sell now",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_IOC,
+    }
+    result = mt5.order_send(request)
+    print(result)
+
+
 async def sell_limit(limit_price, tp_price, sl_price):
     print(f"Command: SELL LIMIT, Symbol: XAUUSD, Price: {limit_price}, TP: {tp_price}, SL: {sl_price}")
     request = {
